@@ -10,11 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 @Service
 public interface ProxyService {
-    public CompletableFuture<ResponseEntity<ResponseDTO>> createBills(BillDto billDto) throws MessagingException;
+    public ResponseEntity<ResponseDTO> createBills(BillDto billDto) throws MessagingException, ExecutionException, InterruptedException;
 
     void generateMail(GenerateMailDTO generateMailDTO);
 }

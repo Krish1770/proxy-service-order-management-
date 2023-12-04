@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 public class ProxyController implements ProxyApi {
@@ -18,8 +19,11 @@ public class ProxyController implements ProxyApi {
     private ProxyService proxyService;
 
     @Override
-    public CompletableFuture<ResponseEntity<ResponseDTO>> createBills(BillDto billDto) throws MessagingException {
-       return proxyService.createBills(billDto);
+    public ResponseEntity<ResponseDTO> createBills(BillDto billDto) throws MessagingException, ExecutionException, InterruptedException {
+     ResponseEntity<ResponseDTO>res = proxyService.createBills(billDto);
+        System.out.println("controller");
+        System.out.println("result  "+ res);
+     return res;
     }
 
     @Override

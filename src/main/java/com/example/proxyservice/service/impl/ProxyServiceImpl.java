@@ -16,9 +16,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
-@Async
 @Service
 public class ProxyServiceImpl implements ProxyService {
 
@@ -27,13 +27,19 @@ public class ProxyServiceImpl implements ProxyService {
     @Autowired
     private BillCollaboration billCollaboration;
     @Override
-    public CompletableFuture<ResponseEntity<ResponseDTO>> createBills(BillDto billDto) throws MessagingException {
+    public ResponseEntity<ResponseDTO> createBills(BillDto billDto) throws MessagingException, ExecutionException, InterruptedException {
 
         System.out.println(billDto.getEmailId()+" "+billDto.getOrderItems());
-      String billId =billCollaboration.createBills(billDto).getBody().getData().toString();
-        System.out.println();
+        System.out.println("Bill     "  +billDto);
+        ResponseEntity<ResponseDTO> responseDTOResponseEntity = billCollaboration.createBills(billDto);
+       String ans= responseDTOResponseEntity.getBody().getData().toString();
+        System.out.println("my ans"+responseDTOResponseEntity.getBody().getData().toString());
 
-      return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO(billId,"billId generated from bill service",HttpStatus.OK)));
+//        System.out.println("healthApi   :5"+billCollaboration.health());
+//        System.out.println("result"+ responseDTOResponseEntity);
+//        System.out.println("BillId"+billId);
+
+      return (ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO("bill generated",ans,HttpStatus.OK)));
     }
 
     @Override
@@ -68,7 +74,7 @@ public class ProxyServiceImpl implements ProxyService {
 
             MimeMessage message1 = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message1, "utf-8");
-
+        System.out.println(generateMailDTO);
 
             StringBuilder str = new StringBuilder();
 
@@ -116,7 +122,7 @@ public class ProxyServiceImpl implements ProxyService {
     public void sendTableEmail(String to, Bill bill, String id) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
-
+        System.out.println("message"+to);
         try {
             messageHelper.setTo(to);
 

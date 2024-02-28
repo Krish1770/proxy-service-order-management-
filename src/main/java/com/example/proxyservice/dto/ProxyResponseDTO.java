@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseDTO {
+public class ProxyResponseDTO {
     private String message;
 
     private Object Data;

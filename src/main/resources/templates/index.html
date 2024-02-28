@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:h2th="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table style="border:1px solid black; border-collapse:collapse">
+   <tr style="border-bottom: 1px solid black">
+      <th style="border-right: 1px solid black ;border-bottom: 1px solid black">name</th>
+      <th style="border-right: 1px solid black ;border-bottom: 1px solid black">price</th>
+      <th style="border-right: 1px solid black ;border-bottom: 1px solid black">quantity</th>
+      <th style="border-right: 1px solid black ;border-bottom: 1px solid black">GST</th>
+      <th style="border-bottom: 1px solid black">Amount</th>
+   </tr>
+
+    <tr style="border-top: 1px solid black" th:each="product:${product}">
+        <td style="border-right: 1px solid black" th:text="*{product.item}" >name</td>
+        <td style="border-right: 1px solid black" th:text="*{product.amount}" >amount</td>
+        <td style="border-right: 1px solid black" th:text="*{product.quantity}" >quantity</td>
+        <td style="border-right: 1px solid black" th:text="*{product.gst}" >gst</td>
+        <td style="border-right: 1px solid black" th:text="*{product.amount}" >Amount</td>
+
+    </tr>
+
+
+</table>
+<h2 th:text ="'Total  :'+${total}" >total</h2>
+
+</body>
+</html>

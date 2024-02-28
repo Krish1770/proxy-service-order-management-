@@ -1,45 +1,50 @@
 package com.example.proxyservice.service.impl;
 
-import com.example.proxyservice.FeignClients.BillCollaboration;
 import com.example.proxyservice.dto.*;
+import com.example.proxyservice.feignClients.BillCollaboration;
 import com.example.proxyservice.service.ProxyService;
 import jakarta.mail.MessagingException;
-
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 
 @Service
+@Slf4j
 public class ProxyServiceImpl implements ProxyService {
 
+    @Autowired
+    private TemplateEngine templateEngine;
     @Autowired
     private JavaMailSender javaMailSender;
     @Autowired
     private BillCollaboration billCollaboration;
-    @Override
-    public ResponseEntity<ResponseDTO> createBills(BillDto billDto) throws MessagingException, ExecutionException, InterruptedException {
 
-        System.out.println(billDto.getEmailId()+" "+billDto.getOrderItems());
-        System.out.println("Bill     "  +billDto);
-        ResponseEntity<ResponseDTO> responseDTOResponseEntity = billCollaboration.createBills(billDto);
-       String ans= responseDTOResponseEntity.getBody().getData().toString();
-        System.out.println("my ans"+responseDTOResponseEntity.getBody().getData().toString());
+    @Override
+    public ResponseEntity<ProxyResponseDTO> createBills(BillDto billDto) throws MessagingException, ExecutionException, InterruptedException {
+
+        System.out.println(billDto.getEmailId() + " " + billDto.getOrderItems());
+        System.out.println("Bill     " + billDto);
+        ResponseEntity<ProxyResponseDTO> responseDTOResponseEntity = billCollaboration.createBills(billDto);
+        String ans = responseDTOResponseEntity.getBody().getData().toString();
+        System.out.println("my ans" + responseDTOResponseEntity.getBody().getData().toString());
 
 //        System.out.println("healthApi   :5"+billCollaboration.health());
 //        System.out.println("result"+ responseDTOResponseEntity);
-//        System.out.println("BillId"+billId);
+//        System.out.l.println("BillId"+billId);
 
-      return (ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO("bill generated",ans,HttpStatus.OK)));
+
+        return (ResponseEntity.status(HttpStatus.OK).body(new ProxyResponseDTO("bill generated", ans, HttpStatus.OK)));
     }
 
     @Override
@@ -49,8 +54,8 @@ public class ProxyServiceImpl implements ProxyService {
         SimpleMailMessage message = new SimpleMailMessage();
 
         System.out.println("proceesing the mail");
-
-            System.out.println("step3");
+        log.info("answer");
+        System.out.println("step3");
 //    Formatter formatter=new Formatter();
 //    String result="";String uid="customerId :"+bill.getUserName()+"\n";
 //     String bid="billId :"+id+"\n";
@@ -72,14 +77,14 @@ public class ProxyServiceImpl implements ProxyService {
 //            bill.getOrder().getAmount());
 //    javaMailSender.send(message);
 
-            MimeMessage message1 = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message1, "utf-8");
+        MimeMessage message1 = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message1, "utf-8");
         System.out.println(generateMailDTO);
 
-            StringBuilder str = new StringBuilder();
+        StringBuilder str = new StringBuilder();
 
-            str.append("<html><body>"
-                    + "<table style='border:2px solid black'>");
+        str.append("<html><body>"
+                + "<table style='border:2px solid black'>");
 //
 //    str.append("<tr>");
 //    str.append("<th>name</th>");
@@ -113,26 +118,34 @@ public class ProxyServiceImpl implements ProxyService {
 //    helper.setText(str.toString());
 //    javaMailSender.send(message);
 
-            String[][] data = {{"1", "2"}, {"3", "4"}};
+        String[][] data = {{"1", "2"}, {"3", "4"}};
         sendTableEmail(generateMailDTO.getEmailId(), generateMailDTO.getBill(), generateMailDTO.getId());
 
 
     }
 
     public void sendTableEmail(String to, Bill bill, String id) {
+
+        Context context = new Context();
+        context.setVariable("product", bill.getOrderItems());
+        context.setVariable("total", bill.getOrder().getAmount());
+
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+
         MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
-        System.out.println("message"+to);
+        System.out.println("message" + to);
         try {
             messageHelper.setTo(to);
 
             String res = "name: " + bill.getUserName() + "\n" + "bill-Id :" + bill.getId();
 
+            String string = res + templateEngine.process("index", context);
 
-            res += buildHtmlTable(bill);
+//            res += buildHtmlTable(bill);
             messageHelper.setTo(to);
             messageHelper.setSubject("your generated bill from our side");
-            messageHelper.setText(res, true);
+            messageHelper.setText(string, true);
             javaMailSender.send(mimeMessage);
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
@@ -150,6 +163,8 @@ public class ProxyServiceImpl implements ProxyService {
         str.append("<th>quantity</th>");
         str.append("<th>GST</th>");
         str.append("<th>Amount</th>");
+
+
         for (ResponseOrderItems items : bill.getOrderItems()) {
             str.append("<tr>");
             str.append("<td>");
@@ -165,7 +180,7 @@ public class ProxyServiceImpl implements ProxyService {
             str.append(items.getGst().toString().substring(0, 5) + "%");
             str.append("</td>");
             str.append("<td>");
-            Double ert = (items.getAmount() * items.getQuantity()) + (double) (items.getAmount()) / 100 * items.getGst().doubleValue() * items.getQuantity();
+            Double ert = Double.valueOf(items.getAmount());
             str.append(ert);
             tot += ert;
             str.append("</td>");
